@@ -373,6 +373,9 @@ struct ContentView: View {
                         ShelfView()
                     }
                 }
+                // Forced identical for every tab, Home/Shelf included — no
+                // per-view size can ever drift from any other again.
+                .frame(width: 520, height: 120, alignment: .topLeading)
                 .transition(
                     .scale(scale: 0.8, anchor: .top)
                     .combined(with: .opacity)

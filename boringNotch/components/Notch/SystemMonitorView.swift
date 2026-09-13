@@ -88,11 +88,10 @@ struct SystemMonitorView: View {
             .frame(width: 520, alignment: .leading)
         }
         .padding(12)
-        .frame(height: 130, alignment: .top)
     }
 
     private func graphTile(title: String, value: String, history: [Double], color: Color, normalize: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption2)
                 .foregroundStyle(.gray)
@@ -100,10 +99,10 @@ struct SystemMonitorView: View {
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .foregroundStyle(.white)
             Sparkline(values: history, color: color, normalizeToMax: normalize)
-                .frame(width: 105, height: 18)
+                .frame(width: 105, height: 16)
         }
         .frame(width: 121, alignment: .leading)
-        .padding(6)
+        .padding(5)
         .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.06)))
     }
 
@@ -131,7 +130,7 @@ private struct Sparkline: View {
         Path { path in
             guard values.count > 1 else { return }
             let width: CGFloat = 105
-            let height: CGFloat = 18
+            let height: CGFloat = 16
             let maxValue = normalizeToMax ? max(values.max() ?? 1, 1) : 100
             let stepX = width / CGFloat(values.count - 1)
             for (i, v) in values.enumerated() {
@@ -145,6 +144,6 @@ private struct Sparkline: View {
             }
         }
         .stroke(color, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
-        .frame(width: 105, height: 18)
+        .frame(width: 105, height: 16)
     }
 }

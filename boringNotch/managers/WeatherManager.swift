@@ -9,6 +9,12 @@
 import Foundation
 import Combine
 
+struct ForecastEntry: Equatable {
+    var label: String
+    var tempC: Int
+    var symbolName: String
+}
+
 struct WeatherInfo: Equatable {
     var city: String = "—"
     var tempC: Int = 0
@@ -16,9 +22,7 @@ struct WeatherInfo: Equatable {
     var feelsLikeC: Int = 0
     var humidity: Int = 0
     var windKmh: Int = 0
-    var next1h: String = "—"
-    var next3h: String = "—"
-    var next6h: String = "—"
+    var forecast: [ForecastEntry] = []
     var symbolName: String = "cloud.sun.fill"
 }
 
@@ -72,10 +76,11 @@ final class WeatherManager: ObservableObject {
         let cur = r.current_condition.first
         let hourly = r.weather.first?.hourly ?? []
 
-        func hour(_ i: Int) -> String {
-            guard hourly.indices.contains(i) else { return "—" }
+        func entry(_ i: Int, label: String) -> ForecastEntry? {
+            guard hourly.indices.contains(i) else { return nil }
             let h = hourly[i]
-            return "\(h.tempC)°C, \(h.weatherDesc.first?.value ?? "—")"
+            let cond = h.weatherDesc.first?.value ?? "—"
+            return ForecastEntry(label: label, tempC: Int(h.tempC) ?? 0, symbolName: symbol(for: cond))
         }
 
         let condition = cur?.weatherDesc.first?.value ?? "—"
@@ -89,9 +94,7 @@ final class WeatherManager: ObservableObject {
             feelsLikeC: Int(cur?.FeelsLikeC ?? "") ?? 0,
             humidity: Int(cur?.humidity ?? "") ?? 0,
             windKmh: Int(cur?.windspeedKmph ?? "") ?? 0,
-            next1h: hour(1),
-            next3h: hour(3),
-            next6h: hour(6),
+            forecast: [entry(1, label: "1h"), entry(3, label: "3h"), entry(6, label: "6h")].compactMap { $0 },
             symbolName: symbol(for: condition)
         )
     }

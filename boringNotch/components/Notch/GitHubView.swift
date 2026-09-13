@@ -67,7 +67,6 @@ struct GitHubView: View {
             .frame(width: 130, alignment: .leading)
         }
         .padding(16)
-        .frame(height: 130, alignment: .top)
     }
 
     private func statBadge(icon: String, count: Int, label: String) -> some View {
