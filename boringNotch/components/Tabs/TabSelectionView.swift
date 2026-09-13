@@ -16,6 +16,9 @@ struct TabModel: Identifiable {
 
 let tabs = [
     TabModel(label: "Home", icon: "house.fill", view: .home),
+    TabModel(label: "Weather", icon: "cloud.sun.fill", view: .weather),
+    TabModel(label: "GitHub", icon: "chevron.left.forwardslash.chevron.right", view: .github),
+    TabModel(label: "System", icon: "gauge.with.dots.needle.50percent", view: .system),
     TabModel(label: "Shelf", icon: "tray.fill", view: .shelf)
 ]
 
@@ -35,12 +38,12 @@ struct TabSelectionView: View {
                     .background {
                         if tab.view == coordinator.currentView {
                             Capsule()
-                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
-                                .matchedGeometryEffect(id: "capsule", in: animation)
+                                .fill(Color(nsColor: .secondarySystemFill))
+                                .matchedGeometryEffect(id: "capsule", in: animation, isSource: true)
                         } else {
                             Capsule()
-                                .fill(coordinator.currentView == tab.view ? Color(nsColor: .secondarySystemFill) : Color.clear)
-                                .matchedGeometryEffect(id: "capsule", in: animation)
+                                .fill(Color.clear)
+                                .matchedGeometryEffect(id: "capsule", in: animation, isSource: false)
                                 .hidden()
                         }
                     }

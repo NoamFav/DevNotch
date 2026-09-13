@@ -37,6 +37,8 @@ struct ContentView: View {
 
     @Default(.showNotHumanFace) var showNotHumanFace
 
+    @Default(.showAerospaceWorkspaces) var showAerospaceWorkspaces
+
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
 
@@ -118,7 +120,7 @@ struct ContentView: View {
                     )
                 
                 mainLayout
-                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil)
+                    .frame(height: vm.notchState == .open ? vm.notchSize.height : nil, alignment: .top)
                     .conditionalModifier(true) { view in
                         let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
                         let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
@@ -266,48 +268,62 @@ struct ContentView: View {
                     .padding(.top, 40)
                     Spacer()
                 } else {
-                    if coordinator.expandingView.type == .battery && coordinator.expandingView.show
-                        && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
-                    {
-                        HStack(spacing: 0) {
-                            HStack {
-                                Text(batteryModel.statusText)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.white)
-                            }
-
-                            Rectangle()
-                                .fill(.black)
-                                .frame(width: vm.closedNotchSize.width + 10)
-
-                            HStack {
-                                BoringBatteryView(
-                                    batteryWidth: 30,
-                                    isCharging: batteryModel.isCharging,
-                                    isInLowPowerMode: batteryModel.isInLowPowerMode,
-                                    isPluggedIn: batteryModel.isPluggedIn,
-                                    levelBattery: batteryModel.levelBattery,
-                                    isForNotification: true
-                                )
-                            }
-                            .frame(width: 76, alignment: .trailing)
+                    HStack(spacing: 0) {
+                        // Spike: persistent AeroSpace status, independent of
+                        // whichever center content (face/music/battery/HUD)
+                        // is currently occupying the notch below.
+                        if vm.notchState == .closed && showAerospaceWorkspaces && !vm.hideOnClosed {
+                            AerospaceWorkspacesView(
+                                manager: vm.aerospaceManager,
+                                emptySize: max(0, vm.effectiveClosedNotchHeight - 12)
+                            )
                         }
-                        .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
-                      } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
-                          InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
-                              .transition(.opacity)
-                      } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
-                          MusicLiveActivity()
-                              .frame(alignment: .center)
-                      } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
-                          BoringFaceAnimation()
-                       } else if vm.notchState == .open {
-                           BoringHeader()
-                               .frame(height: max(24, vm.effectiveClosedNotchHeight))
-                               .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
-                       } else {
-                           Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
-                       }
+
+                        Group {
+                            if coordinator.expandingView.type == .battery && coordinator.expandingView.show
+                                && vm.notchState == .closed && Defaults[.showPowerStatusNotifications]
+                            {
+                                HStack(spacing: 0) {
+                                    HStack {
+                                        Text(batteryModel.statusText)
+                                            .font(.subheadline)
+                                            .foregroundStyle(.white)
+                                    }
+
+                                    Rectangle()
+                                        .fill(.black)
+                                        .frame(width: vm.closedNotchSize.width + 10)
+
+                                    HStack {
+                                        BoringBatteryView(
+                                            batteryWidth: 30,
+                                            isCharging: batteryModel.isCharging,
+                                            isInLowPowerMode: batteryModel.isInLowPowerMode,
+                                            isPluggedIn: batteryModel.isPluggedIn,
+                                            levelBattery: batteryModel.levelBattery,
+                                            isForNotification: true
+                                        )
+                                    }
+                                    .frame(width: 76, alignment: .trailing)
+                                }
+                                .frame(height: vm.effectiveClosedNotchHeight, alignment: .center)
+                              } else if coordinator.sneakPeek.show && Defaults[.inlineHUD] && (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && vm.notchState == .closed {
+                                  InlineHUD(type: $coordinator.sneakPeek.type, value: $coordinator.sneakPeek.value, icon: $coordinator.sneakPeek.icon, hoverAnimation: $isHovering, gestureProgress: $gestureProgress)
+                                      .transition(.opacity)
+                              } else if (!coordinator.expandingView.show || coordinator.expandingView.type == .music) && vm.notchState == .closed && (musicManager.isPlaying || !musicManager.isPlayerIdle) && coordinator.musicLiveActivityEnabled && !vm.hideOnClosed {
+                                  MusicLiveActivity()
+                                      .frame(alignment: .center)
+                              } else if !coordinator.expandingView.show && vm.notchState == .closed && (!musicManager.isPlaying && musicManager.isPlayerIdle) && Defaults[.showNotHumanFace] && !vm.hideOnClosed  {
+                                  BoringFaceAnimation()
+                               } else if vm.notchState == .open {
+                                   BoringHeader()
+                                       .frame(height: max(24, vm.effectiveClosedNotchHeight))
+                                       .opacity(gestureProgress != 0 ? 1.0 - min(abs(gestureProgress) * 0.1, 0.3) : 1.0)
+                               } else {
+                                   Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
+                               }
+                        }
+                    }
 
                       if coordinator.sneakPeek.show {
                           if (coordinator.sneakPeek.type != .music) && (coordinator.sneakPeek.type != .battery) && !Defaults[.inlineHUD] && vm.notchState == .closed {
@@ -356,6 +372,12 @@ struct ContentView: View {
                     switch coordinator.currentView {
                     case .home:
                         NotchHomeView(albumArtNamespace: albumArtNamespace)
+                    case .weather:
+                        WeatherView()
+                    case .github:
+                        GitHubView()
+                    case .system:
+                        SystemMonitorView()
                     case .shelf:
                         ShelfView()
                     }
