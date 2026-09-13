@@ -31,6 +31,14 @@ extension NSScreen {
     @MainActor static var screensByUUID: [String: NSScreen] {
         return NSScreenUUIDCache.shared.allScreens
     }
+
+    /// 1-based index of the screen with this UUID within NSScreen.screens,
+    /// matching sketchybar's `display = 1/2/3` convention (both are thin
+    /// wrappers over the same CGDirectDisplayID active list ordering).
+    @MainActor static func index(forUUID uuid: String?) -> Int? {
+        guard let uuid else { return nil }
+        return NSScreen.screens.firstIndex(where: { $0.displayUUID == uuid }).map { $0 + 1 }
+    }
 }
 
 /// Cache for UUID to NSScreen mappings to avoid repeated lookups

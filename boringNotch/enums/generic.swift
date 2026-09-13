@@ -26,6 +26,9 @@ public enum NotchState {
 
 public enum NotchViews {
     case home
+    case weather
+    case github
+    case system
     case shelf
 }
 

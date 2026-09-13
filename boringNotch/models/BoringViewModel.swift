@@ -40,7 +40,11 @@ class BoringViewModel: NSObject, ObservableObject {
     let webcamManager = WebcamManager.shared
     @Published var isCameraExpanded: Bool = false
     @Published var isRequestingAuthorization: Bool = false
-    
+
+    // Spike: one AeroSpace workspace manager per screen, matching sketchybar's
+    // per-display filtering (items/aerospace_workspaces.lua WORKSPACE_LAYOUT).
+    let aerospaceManager: AerospaceManager
+
     deinit {
         destroy()
     }
@@ -52,9 +56,10 @@ class BoringViewModel: NSObject, ObservableObject {
 
     init(screenUUID: String? = nil) {
         animation = animationLibrary.animation
+        aerospaceManager = AerospaceManager(screenIndex: NSScreen.index(forUUID: screenUUID) ?? 1)
 
         super.init()
-        
+
         self.screenUUID = screenUUID
         notchSize = getClosedNotchSize(screenUUID: screenUUID)
         closedNotchSize = notchSize
