@@ -9,10 +9,13 @@
 import Foundation
 import Combine
 
-struct ForecastEntry: Equatable {
+struct ForecastEntry: Equatable, Identifiable {
+    var id: String { label }
     var label: String
+    var isNow: Bool
     var tempC: Int
     var symbolName: String
+    var chanceOfRain: Int
 }
 
 struct WeatherInfo: Equatable {
@@ -22,6 +25,9 @@ struct WeatherInfo: Equatable {
     var feelsLikeC: Int = 0
     var humidity: Int = 0
     var windKmh: Int = 0
+    var uvIndex: Int = 0
+    var sunrise: String = "—"
+    var sunset: String = "—"
     var forecast: [ForecastEntry] = []
     var symbolName: String = "cloud.sun.fill"
 }
@@ -74,13 +80,58 @@ final class WeatherManager: ObservableObject {
 
     private nonisolated static func map(_ r: WttrResponse, city: String) -> WeatherInfo {
         let cur = r.current_condition.first
-        let hourly = r.weather.first?.hourly ?? []
+        // All days wttr.in gives us (typically 3), concatenated into one
+        // continuous strip like Apple Weather's — scroll goes as far as
+        // the data actually allows, not an arbitrary cap. Each hour keeps
+        // its day's date so we can mark day boundaries distinctly instead
+        // of showing "9PM"/"12AM" two or three times with no distinction.
+        let allHourly: [(date: String, hour: Hourly)] = r.weather.flatMap { day in
+            day.hourly.map { (day.date, $0) }
+        }
+        let currentHour = Calendar.current.component(.hour, from: Date())
 
-        func entry(_ i: Int, label: String) -> ForecastEntry? {
-            guard hourly.indices.contains(i) else { return nil }
-            let h = hourly[i]
+        // wttr.in encodes hour-of-day as "0", "300", ... "2100" (HMM/HHMM).
+        func hour24(_ h: Hourly) -> Int { (Int(h.time) ?? 0) / 100 }
+
+        let dateFormatter = ISO8601DateFormatter()
+        dateFormatter.formatOptions = [.withFullDate]
+        let weekdayFormatter = DateFormatter()
+        weekdayFormatter.dateFormat = "EEE"
+
+        func weekdayLabel(for dateString: String) -> String {
+            guard let date = dateFormatter.date(from: dateString) else { return dateString }
+            return weekdayFormatter.string(from: date)
+        }
+
+        let upcoming = Array(allHourly.drop { hour24($0.hour) < currentHour })
+        var firstShown = true
+        let forecast: [ForecastEntry] = upcoming.map { entry in
+            let h = entry.hour
+            let hr = hour24(h)
+            let isNow = firstShown
+            firstShown = false
+            let label: String
+            if isNow {
+                label = "Now"
+            } else if hr == 0 {
+                // Midnight marks a new day — show the weekday instead of
+                // a second, ambiguous "12AM" further down the strip.
+                label = weekdayLabel(for: entry.date)
+            } else {
+                switch hr {
+                case 1..<12: label = "\(hr)AM"
+                case 12: label = "12PM"
+                default: label = "\(hr - 12)PM"
+                }
+            }
             let cond = h.weatherDesc.first?.value ?? "—"
-            return ForecastEntry(label: label, tempC: Int(h.tempC) ?? 0, symbolName: symbol(for: cond))
+            return ForecastEntry(
+                label: label,
+                isNow: isNow,
+                tempC: Int(h.tempC) ?? 0,
+                symbolName: symbol(for: cond),
+                chanceOfRain: Int(h.chanceofrain) ?? 0
+            )
         }
 
         let condition = cur?.weatherDesc.first?.value ?? "—"
@@ -94,7 +145,10 @@ final class WeatherManager: ObservableObject {
             feelsLikeC: Int(cur?.FeelsLikeC ?? "") ?? 0,
             humidity: Int(cur?.humidity ?? "") ?? 0,
             windKmh: Int(cur?.windspeedKmph ?? "") ?? 0,
-            forecast: [entry(1, label: "1h"), entry(3, label: "3h"), entry(6, label: "6h")].compactMap { $0 },
+            uvIndex: Int(cur?.uvIndex ?? "") ?? 0,
+            sunrise: r.weather.first?.astronomy.first?.sunrise ?? "—",
+            sunset: r.weather.first?.astronomy.first?.sunset ?? "—",
+            forecast: forecast,
             symbolName: symbol(for: condition)
         )
     }
@@ -121,16 +175,25 @@ private struct CurrentCondition: Decodable {
     let FeelsLikeC: String
     let humidity: String
     let windspeedKmph: String
+    let uvIndex: String
     let weatherDesc: [Desc]
 }
 private struct NearestArea: Decodable {
     let areaName: [Desc]
 }
 private struct WeatherDay: Decodable {
+    let date: String
+    let astronomy: [Astronomy]
     let hourly: [Hourly]
 }
+private struct Astronomy: Decodable {
+    let sunrise: String
+    let sunset: String
+}
 private struct Hourly: Decodable {
+    let time: String
     let tempC: String
+    let chanceofrain: String
     let weatherDesc: [Desc]
 }
 private struct Desc: Decodable {

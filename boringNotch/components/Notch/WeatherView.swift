@@ -3,14 +3,17 @@
 //  boringNotch
 //
 //  Spike: native port of the items/widgets/weather.lua popup — same
-//  wttr.in fields (condition, feels like, humidity, wind, next 1h/3h/6h).
+//  wttr.in fields, restyled after Apple Weather's own hourly strip and
+//  reusing CalendarView's WheelPicker convention (a horizontally
+//  scrollable row of rounded cells) instead of a handful of static pills.
 //
-//  Sizing is centralized in ContentView (the switch wrapper forces every
-//  tab to the same width/height), so this view only needs concrete leaf
-//  widths, no top-level frame of its own.
+//  Sizing: height is centralized in ContentView; width is left intrinsic
+//  like NotchHomeView/ShelfView, sized generously enough to naturally
+//  reach the same width those do, not just fit inside it.
 //
 
 import SwiftUI
+import AppKit
 
 struct WeatherView: View {
     @ObservedObject var manager = WeatherManager.shared
@@ -19,6 +22,7 @@ struct WeatherView: View {
         Group {
             if let info = manager.info {
                 content(for: info)
+                    .transition(.opacity)
             } else {
                 Text("Loading weather…")
                     .font(.subheadline)
@@ -26,79 +30,123 @@ struct WeatherView: View {
             }
         }
         .padding(8)
+        .animation(.easeInOut(duration: 0.35), value: manager.info)
     }
 
     private func content(for info: WeatherInfo) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 10) {
-                VStack(spacing: 2) {
-                    Image(systemName: info.symbolName)
-                        .font(.system(size: 30))
-                        .symbolRenderingMode(.multicolor)
-                    Text("\(info.tempC)°")
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.effectiveAccent)
+            HStack(spacing: 14) {
+                Button {
+                    if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.weather") {
+                        NSWorkspace.shared.open(url)
+                    }
+                } label: {
+                    VStack(spacing: 2) {
+                        Image(systemName: info.symbolName)
+                            .font(.system(size: 26))
+                            .symbolRenderingMode(.multicolor)
+                        Text("\(info.tempC)°")
+                            .font(.system(size: 18, weight: .bold, design: .rounded))
+                            .foregroundStyle(Color.effectiveAccent)
+                    }
+                    .frame(width: 68)
                 }
-                .frame(width: 66)
+                .buttonStyle(.plain)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(info.city)
                         .font(.headline)
                         .foregroundColor(.white)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     Text(info.condition)
                         .font(.caption)
                         .foregroundColor(Color(white: 0.65))
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
-                .frame(width: 100, alignment: .leading)
+                .frame(width: 130, alignment: .leading)
 
                 detailCard(icon: "thermometer.medium", value: "\(info.feelsLikeC)°C", label: "Feels", tint: .orange)
                 detailCard(icon: "humidity.fill", value: "\(info.humidity)%", label: "Humidity", tint: .cyan)
                 detailCard(icon: "wind", value: "\(info.windKmh) km/h", label: "Wind", tint: .mint)
             }
 
-            // Calendar-style forecast strip: each slot is its own rounded
-            // cell with an icon, mirroring WheelPicker's date cells.
-            HStack(spacing: 8) {
-                ForEach(info.forecast, id: \.label) { entry in
-                    forecastCell(entry)
+            // Apple Weather-style hourly strip: every hour wttr.in gives us,
+            // horizontally scrollable, reusing WheelPicker's rounded-cell
+            // language from CalendarView instead of 3 static pills.
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(info.forecast) { entry in
+                        hourCell(entry)
+                    }
                 }
             }
+            // Explicit width only: an unconstrained ScrollView is greedy
+            // along its scroll axis — exactly the unbounded-size failure
+            // mode that previously corrupted the shared notch shape/header.
+            // Height is left intrinsic (safe — that's the non-scrolling axis).
+            .frame(width: 524, alignment: .leading)
         }
         .onTapGesture { manager.refresh() }
     }
 
     private func detailCard(icon: String, value: String, label: String, tint: Color) -> some View {
-        VStack(spacing: 2) {
-            Image(systemName: icon)
-                .font(.caption)
-                .foregroundStyle(tint)
-            Text(value)
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundColor(.white)
-            Text(label)
-                .font(.system(size: 9))
-                .foregroundStyle(.gray)
+        HoverCard {
+            VStack(spacing: 2) {
+                Image(systemName: icon)
+                    .font(.caption)
+                    .foregroundStyle(tint)
+                Text(value)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                Text(label)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.gray)
+            }
+            .frame(width: 90, height: 46)
+            .background(RoundedRectangle(cornerRadius: 10).fill(tint.opacity(0.15)))
         }
-        .frame(width: 76, height: 52)
-        .background(RoundedRectangle(cornerRadius: 10).fill(tint.opacity(0.15)))
     }
 
-    private func forecastCell(_ entry: ForecastEntry) -> some View {
+    // Matches Apple Weather's own hourly strip: flat columns, no per-cell
+    // card, bold white time/temp, blue precip % only when it's actually
+    // likely to rain.
+    private func hourCell(_ entry: ForecastEntry) -> some View {
         VStack(spacing: 2) {
             Text(entry.label)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.gray)
+                .font(.system(size: 10, weight: .bold))
+                .foregroundColor(.white)
             Image(systemName: entry.symbolName)
-                .font(.system(size: 14))
+                .font(.system(size: 13))
                 .symbolRenderingMode(.multicolor)
+            Text(entry.chanceOfRain > 20 ? "\(entry.chanceOfRain)%" : " ")
+                .font(.system(size: 9, weight: .medium))
+                .foregroundColor(.blue)
             Text("\(entry.tempC)°")
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .font(.system(size: 12, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
         }
-        .frame(width: 56, height: 38)
-        .padding(.vertical, 2)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.effectiveAccentBackground))
+        .frame(width: 40)
+    }
+}
+
+/// Small reusable hover-scale wrapper, matching HoverButton's feel
+/// (used for icon buttons elsewhere) but for arbitrary card content.
+private struct HoverCard<Content: View>: View {
+    @ViewBuilder var content: Content
+    @State private var isHovering = false
+
+    var body: some View {
+        content
+            .scaleEffect(isHovering ? 1.05 : 1.0)
+            .brightness(isHovering ? 0.06 : 0)
+            .onHover { hovering in
+                withAnimation(.smooth(duration: 0.2)) {
+                    isHovering = hovering
+                }
+            }
     }
 }

@@ -373,9 +373,11 @@ struct ContentView: View {
                         ShelfView()
                     }
                 }
-                // Forced identical for every tab, Home/Shelf included — no
-                // per-view size can ever drift from any other again.
-                .frame(width: 520, height: 120, alignment: .topLeading)
+                // Height only — forcing width here too would override
+                // NotchHomeView/ShelfView's own natural (narrower) width
+                // and introduce a gap on their right edge that isn't there
+                // in stock boringNotch. Width stays per-tab intrinsic.
+                .frame(height: 120, alignment: .top)
                 .transition(
                     .scale(scale: 0.8, anchor: .top)
                     .combined(with: .opacity)
