@@ -2,9 +2,12 @@
 
 Thank you for taking the time to contribute! ❤️
 
+> [!NOTE]
+> DevNotch is a personal fork of [Boring Notch](https://github.com/TheBoredTeam/boring.notch). These guidelines are inherited from upstream and mostly still apply here, but this fork has no Crowdin project or CI of its own — contributions to the core app are better directed upstream. Issues/PRs about this fork's own additions (the AeroSpace widget, extra HUD widgets) are welcome here.
+
 These guidelines help streamline the contribution process for everyone involved. By following them, you'll make it easier for maintainers to review your work and collaborate with you effectively.
 
-You can contribute in many ways: writing code, improving documentation, reporting bugs, requesting features, or creating tutorials and blog posts. Every contribution, large or small, helps make Boring Notch better.
+You can contribute in many ways: writing code, improving documentation, reporting bugs, requesting features, or creating tutorials and blog posts. Every contribution, large or small, helps make DevNotch better.
 
 ## Table of Contents
 
