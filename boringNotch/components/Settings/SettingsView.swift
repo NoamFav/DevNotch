@@ -1393,6 +1393,9 @@ struct Appearance: View {
                 Defaults.Toggle(key: .showAerospaceWorkspaces) {
                     Text("Show AeroSpace workspace status")
                 }
+                Defaults.Toggle(key: .showSneakPeekClock) {
+                    Text("Show clock in closed notch")
+                }
             } header: {
                 HStack {
                     Text("Additional features")

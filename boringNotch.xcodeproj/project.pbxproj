@@ -108,6 +108,7 @@
 		14E9FEAE2C7325770062E83F /* Button+Bouncing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E9FEAD2C7325770062E83F /* Button+Bouncing.swift */; };
 		14FC6E502C7DED5600C7BEA5 /* DataTypes+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */; };
 		1BC16BE474F6609257FB5766 /* AerospaceWorkspacesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59113124BCC6B721C6D8E324 /* AerospaceWorkspacesView.swift */; };
+		14D4B4EA8DCCEBDAD000E346 /* ClockPeekView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D154991FD059B1FA69C61FF3 /* ClockPeekView.swift */; };
 		507266DB2C908E2E00A2D00D /* HoverButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 507266DA2C908E2E00A2D00D /* HoverButton.swift */; };
 		5917FD112E57891600E87F1C /* MediaKeyInterceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */; };
 		5955950D2E900ED800C66711 /* ApplicationRelauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */; };
@@ -286,6 +287,7 @@
 		14FC6E4F2C7DED5600C7BEA5 /* DataTypes+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataTypes+Extensions.swift"; sourceTree = "<group>"; };
 		507266DA2C908E2E00A2D00D /* HoverButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoverButton.swift; sourceTree = "<group>"; };
 		59113124BCC6B721C6D8E324 /* AerospaceWorkspacesView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AerospaceWorkspacesView.swift; sourceTree = "<group>"; };
+		D154991FD059B1FA69C61FF3 /* ClockPeekView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ClockPeekView.swift; sourceTree = "<group>"; };
 		5917FD102E57891600E87F1C /* MediaKeyInterceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaKeyInterceptor.swift; sourceTree = "<group>"; };
 		5955950C2E900ED800C66711 /* ApplicationRelauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationRelauncher.swift; sourceTree = "<group>"; };
 		59D8C23B2E589FAA00147B33 /* VolumeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeManager.swift; sourceTree = "<group>"; };
@@ -752,6 +754,7 @@
 				14D570D12C5F6C6A0011E668 /* BoringExtrasMenu.swift */,
 				1471A8582C6281BD0058408D /* BoringNotchWindow.swift */,
 				59113124BCC6B721C6D8E324 /* AerospaceWorkspacesView.swift */,
+				D154991FD059B1FA69C61FF3 /* ClockPeekView.swift */,
 				F3282CB6E79E1975C1A7F002 /* WeatherView.swift */,
 				DA645BAA3D07545FBAFBEAF1 /* SystemMonitorView.swift */,
 				95CA79DC0989DEB61FD50D92 /* GitHubView.swift */,
@@ -1065,6 +1068,7 @@
 				B1F0A0022E60000100000001 /* BrightnessManager.swift in Sources */,
 				70108A1075CE8FC9B0FCD04D /* AerospaceManager.swift in Sources */,
 				1BC16BE474F6609257FB5766 /* AerospaceWorkspacesView.swift in Sources */,
+				14D4B4EA8DCCEBDAD000E346 /* ClockPeekView.swift in Sources */,
 				9E9937E420E3D3AB943A6AEB /* WeatherManager.swift in Sources */,
 				FE87763E031C5F33C2612A5C /* WeatherView.swift in Sources */,
 				6FD3052F17982E76CC78BC43 /* SystemManager.swift in Sources */,

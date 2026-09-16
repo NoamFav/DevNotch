@@ -39,6 +39,8 @@ struct ContentView: View {
 
     @Default(.showAerospaceWorkspaces) var showAerospaceWorkspaces
 
+    @Default(.showSneakPeekClock) var showSneakPeekClock
+
     // Shared interactive spring for movement/resizing to avoid conflicting animations
     private let animationSpring = Animation.interactiveSpring(response: 0.38, dampingFraction: 0.8, blendDuration: 0)
 
@@ -313,6 +315,12 @@ struct ContentView: View {
                                } else {
                                    Rectangle().fill(.clear).frame(width: vm.closedNotchSize.width - 20, height: vm.effectiveClosedNotchHeight)
                                }
+                        }
+
+                        // Spike: persistent clock, mirroring the AeroSpace
+                        // status on the opposite side of the closed notch.
+                        if vm.notchState == .closed && showSneakPeekClock && !vm.hideOnClosed {
+                            ClockPeekView()
                         }
                     }
 
